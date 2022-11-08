@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        main {
+            width: 100px;
+            height: 100px;
+        }
+    </style>
+    <script type="module">
+        import { h, text, app } from "https://unpkg.com/hyperapp";
+        import { SyncedInterval } from "./src/index.js";
+
+        // Keep track of how many times this button was pressed
+        const IncCounter = (state) => ({
+            ...state,
+            counter: state.counter + 1,
+        })
+
+        app({
+            init: { now: 0.0 },
+            view: ({ now }) => h("main", {
+                style: {
+                    background: [
+                        "red", "green", "yellow", "purple", "orange", "blue"
+                    ][Math.round(now) % 6]
+                }
+            }, [
+            ]),
+            subscriptions: (state) => [
+                SyncedInterval({
+                    server: "https://karakara.uk/time.json",
+                    every: 2000, // ms
+                    sync: 60000, // ms
+                    onInterval(state, timestamp_ms) {
+                        return { ...state, now: timestamp_ms / 1000 };
+                    },
+                })
+            ],
+            node: document.getElementById("app"),
+        })
+    </script>
+</head>
+
+<body>
+    <noscript>This page requires JavaScript</noscript>
+    <main id="app"></main>
+</body>
+
+</html>
