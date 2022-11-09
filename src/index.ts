@@ -1,16 +1,25 @@
-function _syncedIntervalSubscriber(dispatch, props) {
-  props = {
+type SyncedIntervalProps = {
+  server?: string,
+  samples?: number,
+  interval?: number,
+  sync?: number,
+  onInterval?: CallableFunction | null,
+  onSync?: CallableFunction | null,
+};
+
+function _syncedIntervalSubscriber(dispatch, user_props: SyncedIntervalProps) {
+  var props = {
     server: "https://shish.io/time.json",
-    every: 1000,
+    interval: 1000,
     sync: 60000,
     samples: 5,
     onInterval: null,
     onSync: null,
-    ...props,
+    ...user_props,
   };
-  var sync_id = null;
-  var interval_id = null;
-  let offsets = [];
+  var sync_id: ReturnType<typeof setInterval>|null = null;
+  var interval_id: ReturnType<typeof setTimeout>|null = null;
+  let offsets: Array<number> = [];
 
   function offset() {
     return offsets.length
@@ -22,20 +31,22 @@ function _syncedIntervalSubscriber(dispatch, props) {
   }
   function sync() {
     var sent = Date.now();
-    var recvd = null;
+    var recvd: number|null = null;
     fetch(props.server)
       .then((response) => {
         recvd = Date.now();
         return response.json();
       })
       .then((response) => {
+        var server_time = typeof response == "number" ? response : response.time_s;
+        if(!recvd) return;
         var pingpong = recvd - sent;
         // if there's more than 200ms of network lag, don't
         // trust the timestamp to be accurate
         if (pingpong < 200) {
           // convert server response from seconds to ms, because
           // js does everything in ms
-          offsets.push(response * 1000 - pingpong / 2 - sent);
+          offsets.push(server_time * 1000 - pingpong / 2 - sent);
         }
         // if we don't have much data, get more quickly
         if (offsets.length < props.samples) {
@@ -82,6 +93,6 @@ function _syncedIntervalSubscriber(dispatch, props) {
   };
 }
 
-export function SyncedInterval(props) {
+export function SyncedInterval(props: SyncedIntervalProps): [CallableFunction, SyncedIntervalProps] {
   return [_syncedIntervalSubscriber, props];
 }

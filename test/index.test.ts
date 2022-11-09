@@ -11,11 +11,6 @@ function dispatch(fn, props) {
 // because of clock drift we are now on xx0999
 // we don't call onInterval(), sleep for 1ms, then onInterval again
 
-// TODO:
-// test that we handle HTTP lag
-// - correcting for small lag
-// - ignoring responses with big lag
-
 describe("SyncedInterval", () => {
   beforeEach(() => {
     jest.useFakeTimers();
@@ -38,12 +33,12 @@ describe("SyncedInterval", () => {
 
       jest.setSystemTime(123456042);
       sub(dispatch, props); // send a request
-      fetch.mockResponse({ json: () => 123456.0 }); // send the response
+      fetch.mockResponse({ json: () => ({ time_s: 123456.0 }) }); // send the response
       expect(fn).toHaveBeenCalledTimes(1); // check that we process the response
       expect(fn).toHaveBeenLastCalledWith({}, { offset: -42, range: 0 });
     });
     it("retry if a sample is invalid", () => {
-      fn = jest.fn();
+      var fn = jest.fn();
       var [sub, props] = SyncedInterval({
         interval: 0,
         sync: 0,
@@ -54,14 +49,14 @@ describe("SyncedInterval", () => {
       jest.setSystemTime(10000);
       sub(dispatch, props); // send a request
       jest.setSystemTime(15000); // 5 seconds pass
-      fetch.mockResponse({ json: () => 10.0 }); // our response, arrives, late
+      fetch.mockResponse({ json: () => ({ time_s: 10.0 }) }); // our response, arrives, late
       jest.runOnlyPendingTimers(); // retry again in a second
-      fetch.mockResponse({ json: () => 16.0 });
+      fetch.mockResponse({ json: () => ({ time_s: 16.0 }) });
       expect(fn).toHaveBeenCalledTimes(1);
       expect(fn).toHaveBeenLastCalledWith({}, { offset: 0, range: 0 });
     });
     it("account for network delay", () => {
-      fn = jest.fn();
+      var fn = jest.fn();
       var [sub, props] = SyncedInterval({
         interval: 0,
         sync: 0,
@@ -72,7 +67,7 @@ describe("SyncedInterval", () => {
       jest.setSystemTime(10000);
       sub(dispatch, props); // we send a request at 10,000
       jest.setSystemTime(10100); // 100ms after sending request
-      fetch.mockResponse({ json: () => 10.05 }); // our response arrives
+      fetch.mockResponse({ json: () => ({ time_s: 10.05 }) }); // our response arrives
       // if we sent a request at 10,000 and got a response at 10,100,
       // we assume there is 50ms of lag in each direction. If the server
       // responds to our 10,000 message at 10,050, then that means our
@@ -81,7 +76,7 @@ describe("SyncedInterval", () => {
       expect(fn).toHaveBeenLastCalledWith({}, { offset: 0, range: 0 });
     });
     it("multiple samples", () => {
-      fn = jest.fn();
+      var fn = jest.fn();
       var [sub, props] = SyncedInterval({
         interval: 0,
         sync: 0,
@@ -95,16 +90,16 @@ describe("SyncedInterval", () => {
 
       // sending one response, it's not enough data so it creates a new timer,
       // repeat until we have enough data
-      fetch.mockResponse({ json: () => 10.05 });
+      fetch.mockResponse({ json: () => ({ time_s: 10.05 }) });
       jest.runOnlyPendingTimers();
-      fetch.mockResponse({ json: () => 11.1 });
+      fetch.mockResponse({ json: () => ({ time_s: 11.1 }) });
       jest.runOnlyPendingTimers();
-      fetch.mockResponse({ json: () => 12.15 });
+      fetch.mockResponse({ json: () => ({ time_s: 12.15 }) });
       expect(fn).toHaveBeenCalledTimes(1);
       expect(fn).toHaveBeenLastCalledWith({}, { offset: 100, range: 50 });
     });
     it("multiple syncs", () => {
-      fn = jest.fn();
+      var fn = jest.fn();
       var [sub, props] = SyncedInterval({
         interval: 0,
         sync: 10000,
@@ -118,11 +113,11 @@ describe("SyncedInterval", () => {
 
       // sending one response, it's not enough data so it creates a new timer,
       // repeat until we have enough data
-      fetch.mockResponse({ json: () => 10.05 });
+      fetch.mockResponse({ json: () => ({ time_s: 10.05 }) });
       jest.advanceTimersByTime(1000);
-      fetch.mockResponse({ json: () => 11.1 });
+      fetch.mockResponse({ json: () => ({ time_s: 11.1 }) });
       jest.advanceTimersByTime(1000);
-      fetch.mockResponse({ json: () => 12.15 });
+      fetch.mockResponse({ json: () => ({ time_s: 12.15 }) });
       expect(fn).toHaveBeenCalledTimes(1);
       expect(fn).toHaveBeenLastCalledWith({}, { offset: 100, range: 50 });
 
@@ -130,15 +125,15 @@ describe("SyncedInterval", () => {
       // the regular sync setInterval() which activates 10s after
       // the original setSystemTime()
       jest.runOnlyPendingTimers();
-      fetch.mockResponse({ json: () => 20.15 });
+      fetch.mockResponse({ json: () => ({ time_s: 20.15 }) });
       expect(fn).toHaveBeenCalledTimes(2);
 
       // if we run the interval a couple more times, then the average
       // offset should reflect only our most recent ${samples} samples
       jest.runOnlyPendingTimers();
-      fetch.mockResponse({ json: () => 30.15 });
+      fetch.mockResponse({ json: () => ({ time_s: 30.15 }) });
       jest.runOnlyPendingTimers();
-      fetch.mockResponse({ json: () => 40.15 });
+      fetch.mockResponse({ json: () => ({ time_s: 40.15 }) });
       expect(fn).toHaveBeenCalledTimes(4);
       expect(fn).toHaveBeenLastCalledWith({}, { offset: 150, range: 0 });
     });
@@ -146,7 +141,7 @@ describe("SyncedInterval", () => {
 
   describe("interval", () => {
     it("interval loop works", () => {
-      fn = jest.fn();
+      var fn = jest.fn();
       var [sub, props] = SyncedInterval({
         interval: 1000,
         sync: -1,
