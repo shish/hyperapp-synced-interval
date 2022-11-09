@@ -1,12 +1,12 @@
-import type {Subscription} from "hyperapp";
+import type { Subscription } from "hyperapp";
 
 type SyncedIntervalProps = {
-  server?: string,
-  samples?: number,
-  interval?: number,
-  sync?: number,
-  onInterval?: CallableFunction | null,
-  onSync?: CallableFunction | null,
+  server?: string;
+  samples?: number;
+  interval?: number;
+  sync?: number;
+  onInterval?: CallableFunction | null;
+  onSync?: CallableFunction | null;
 };
 
 function _syncedIntervalSubscriber(dispatch, user_props: SyncedIntervalProps) {
@@ -19,8 +19,8 @@ function _syncedIntervalSubscriber(dispatch, user_props: SyncedIntervalProps) {
     onSync: null,
     ...user_props,
   };
-  var sync_id: ReturnType<typeof setInterval>|null = null;
-  var interval_id: ReturnType<typeof setTimeout>|null = null;
+  var sync_id: ReturnType<typeof setInterval> | null = null;
+  var interval_id: ReturnType<typeof setTimeout> | null = null;
   let offsets: Array<number> = [];
 
   function offset() {
@@ -33,15 +33,16 @@ function _syncedIntervalSubscriber(dispatch, user_props: SyncedIntervalProps) {
   }
   function sync() {
     var sent = Date.now();
-    var recvd: number|null = null;
+    var recvd: number | null = null;
     fetch(props.server)
       .then((response) => {
         recvd = Date.now();
         return response.json();
       })
       .then((response) => {
-        var server_time = typeof response == "number" ? response : response.time_s;
-        if(!recvd) return;
+        var server_time =
+          typeof response == "number" ? response : response.time_s;
+        if (!recvd) return;
         var pingpong = recvd - sent;
         // if there's more than 200ms of network lag, don't
         // trust the timestamp to be accurate
@@ -95,6 +96,8 @@ function _syncedIntervalSubscriber(dispatch, user_props: SyncedIntervalProps) {
   };
 }
 
-export function SyncedInterval<S>(props: SyncedIntervalProps): Subscription<S, SyncedIntervalProps> {
+export function SyncedInterval<S>(
+  props: SyncedIntervalProps
+): Subscription<S, SyncedIntervalProps> {
   return [_syncedIntervalSubscriber, props];
 }

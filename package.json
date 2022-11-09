@@ -1,15 +1,11 @@
 {
   "name": "@shish2k/hyperapp-synced-interval",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Call a function on the second, every second, synced across clients",
   "keywords": [
     "hyperapp",
     "interval"
   ],
-  "source": "src/index.ts",
-  "main": "dist/index.js",
-  "module": "dist/module.js",
-  "types": "dist/types.d.ts",
   "author": "Shish <shish+npm@shishnet.org>",
   "license": "MIT",
   "repository": "shish/hyperapp-synced-interval",
@@ -17,8 +13,12 @@
   "bugs": {
     "url": "https://github.com/shish/hyperapp-synced-interval/issues"
   },
+  "source": "src/index.ts",
+  "main": "dist/index.js",
+  "module": "dist/module.js",
+  "types": "dist/types.d.ts",
   "peerDependencies": {
-    "hyperapp": "^2.0.0"
+    "hyperapp": "^2.0.22"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.20.2",
@@ -26,6 +26,7 @@
     "@parcel/transformer-typescript-types": "^2.7.0",
     "@types/jest": "^29.2.2",
     "jest": "^29.3.0",
+    "jest-environment-jsdom": "^29.3.1",
     "jest-mock-fetch": "^2.0.5",
     "parcel": "^2.7.0",
     "prettier": "^2.7.1",
@@ -49,6 +50,7 @@
     ]
   },
   "jest": {
+    "testEnvironment": "jsdom",
     "automock": false,
     "setupFiles": [
       "./test/setupJest.js"
