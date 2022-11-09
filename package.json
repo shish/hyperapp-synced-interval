@@ -6,7 +6,9 @@
     "hyperapp",
     "interval"
   ],
+  "source": "src/index.js",
   "main": "dist/index.js",
+  "module": "dist/module.js",
   "author": "Shish <shish+npm@shishnet.org>",
   "license": "MIT",
   "repository": "shish/hyperapp-synced-interval",
@@ -28,7 +30,7 @@
     "clean": "npx rimraf coverage dist node_modules .parcel-cache",
     "format": "prettier --write '{src,test}/**/*.js'",
     "test": "jest --coverage --no-cache",
-    "build": "parcel build src/index.js",
+    "build": "parcel build",
     "prepare": "npm run format && npm test && npm run build",
     "release": "./pre-flight-tests && npm run clean && npm i && ./pre-flight-tests && git tag $npm_package_version && git push && git push --tags && npm publish --tag latest --access public"
   },
