@@ -1,3 +1,5 @@
+import type {Subscription} from "hyperapp";
+
 type SyncedIntervalProps = {
   server?: string,
   samples?: number,
@@ -93,6 +95,6 @@ function _syncedIntervalSubscriber(dispatch, user_props: SyncedIntervalProps) {
   };
 }
 
-export function SyncedInterval(props: SyncedIntervalProps): [CallableFunction, SyncedIntervalProps] {
+export function SyncedInterval<S>(props: SyncedIntervalProps): Subscription<S, SyncedIntervalProps> {
   return [_syncedIntervalSubscriber, props];
 }
